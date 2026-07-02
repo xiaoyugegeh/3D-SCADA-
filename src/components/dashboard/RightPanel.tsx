@@ -1,13 +1,11 @@
 // 右侧面板
 
-import { useEffect } from 'react';
 import { Battery, CheckCircle, AlertTriangle, Bot, Lightbulb } from 'lucide-react';
 import { Panel } from '@/components/ui/Panel';
 import { ChargingStatus } from '@/components/charts/ChargingStatus';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useDashboardStore } from '@/store';
-import { api } from '@/lib/api';
-import { formatDuration, formatTime } from '@/lib/utils';
+import { formatTime } from '@/lib/utils';
 import type { AgvItem, AlarmItem } from '@/types';
 
 function RobotDetails() {
@@ -112,14 +110,6 @@ function AISuggestions() {
 }
 
 export function RightPanel() {
-  const setAgvList = useDashboardStore((state) => state.setAgvList);
-  const setAlarms = useDashboardStore((state) => state.setAlarms);
-
-  useEffect(() => {
-    api.getAgvList().then(setAgvList).catch(() => {});
-    api.getAlarms().then(setAlarms).catch(() => {});
-  }, [setAgvList, setAlarms]);
-
   return (
     <aside className="flex w-[22rem] min-w-[22rem] flex-col gap-4 overflow-y-auto p-4 pl-2">
       <Panel title="充电桩状态" subtitle="CHARGING STATION STATUS" accent="green">
