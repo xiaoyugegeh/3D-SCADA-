@@ -45,6 +45,10 @@ export function useWebSocket() {
       addAlarm,
     });
 
+    // 先注入浏览器 Mock 数据并启动本地模拟，保证 Vercel 等静态部署立即有动态效果；
+    // 若本地 WebSocket 连接成功，再用服务端数据覆盖。
+    loadInitialDataAndStartSimulation();
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     const ws = new WebSocket(wsUrl);
@@ -52,9 +56,8 @@ export function useWebSocket() {
 
     timeoutRef.current = setTimeout(() => {
       if (!connectedRef.current) {
-        // WebSocket 未在规定时间内连接，切换到本地模拟
+        // WebSocket 未在规定时间内连接，关闭即可，本地模拟已在运行
         ws.close();
-        loadInitialDataAndStartSimulation();
       }
     }, WS_TIMEOUT);
 
