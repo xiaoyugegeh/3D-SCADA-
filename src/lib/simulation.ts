@@ -1,12 +1,14 @@
 // 前端本地模拟器：当 WebSocket 不可用（如 Vercel Serverless）时，在前端自行驱动数据更新
 
-import type { AgvItem, AlarmItem, DeviceItem, TaskItem } from '@/types';
+import type { AgvItem, AlarmItem, DeviceItem, TaskItem, WarehouseOverview } from '@/types';
 
 export interface SimulationCallbacks {
   getAgvs: () => AgvItem[];
   getDevices: () => DeviceItem[];
   getTasks: () => TaskItem[];
   getAlarms: () => AlarmItem[];
+  getOverview: () => WarehouseOverview | null;
+  setOverview: (overview: WarehouseOverview) => void;
   setAgvList: (list: AgvItem[]) => void;
   updateAgv: (agv: AgvItem) => void;
   updateDevice: (device: DeviceItem) => void;
@@ -81,6 +83,39 @@ export function createClientSimulation(callbacks: SimulationCallbacks) {
         acknowledged: false,
       };
       callbacks.addAlarm(alarm);
+    }
+
+    // 同步概览数据
+    const currentOverview = callbacks.getOverview();
+    if (currentOverview) {
+      const powerDistribution = [0, 0, 0, 0, 0];
+      agvs.forEach((a) => {
+        const idx = Math.min(Math.floor(a.battery / 20), 4);
+        powerDistribution[idx]++;
+      });
+      callbacks.setOverview({
+        ...currentOverview,
+        robotStatus: {
+          total: agvs.length,
+          working: agvs.filter((a) => a.status === 'working').length,
+          charging: agvs.filter((a) => a.status === 'charging').length,
+          idle: agvs.filter((a) => a.status === 'idle').length,
+          offline: agvs.filter((a) => a.status === 'offline').length,
+          abnormal: agvs.filter((a) => a.status === 'abnormal').length,
+        },
+        powerDistribution,
+        taskStats: {
+          pending: tasks.filter((t) => t.status === 'pending').length,
+          running: tasks.filter((t) => t.status === 'running').length,
+          completed: tasks.filter((t) => t.status === 'completed').length,
+          failed: tasks.filter((t) => t.status === 'failed').length,
+        },
+        chargingStatus: {
+          total: devices.filter((d) => d.type === 'charging').length,
+          free: devices.filter((d) => d.type === 'charging' && d.status === 'normal').length,
+          occupied: devices.filter((d) => d.type === 'charging' && d.status === 'warning').length,
+        },
+      });
     }
   }
 

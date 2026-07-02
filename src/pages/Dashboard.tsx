@@ -13,8 +13,6 @@ export default function Dashboard() {
   const theme = useDashboardStore((state) => state.theme);
   const hudVisible = useDashboardStore((state) => state.hudVisible);
   const setOverview = useDashboardStore((state) => state.setOverview);
-  const setDeviceList = useDashboardStore((state) => state.setDeviceList);
-  const setTaskList = useDashboardStore((state) => state.setTaskList);
 
   useWebSocket();
 
@@ -22,13 +20,8 @@ export default function Dashboard() {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  useEffect(() => {
-    api.getOverview().then(setOverview).catch(() => {});
-    api.getDeviceList().then(setDeviceList).catch(() => {});
-    api.getTaskList().then(setTaskList).catch(() => {});
-  }, [setOverview, setDeviceList, setTaskList]);
-
-  // 定期刷新概览
+  // 本地开发时通过 REST API 定期刷新概览；Vercel 等静态部署下 API 可能不可用，
+  // 此时前端模拟器会自行维护概览数据。
   useEffect(() => {
     const id = setInterval(() => {
       api.getOverview().then(setOverview).catch(() => {});

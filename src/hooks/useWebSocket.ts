@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useDashboardStore } from '@/store';
 import { api } from '@/lib/api';
 import { createClientSimulation } from '@/lib/simulation';
+import { generateMockData } from '@/lib/mockData';
 import type { AgvItem, AlarmItem, DeviceItem, LocationItem, TaskItem, WsMessage } from '@/types';
 
 const WS_TIMEOUT = 3000;
@@ -35,6 +36,8 @@ export function useWebSocket() {
       getDevices: () => store.deviceList,
       getTasks: () => store.taskList,
       getAlarms: () => store.alarms,
+      getOverview: () => store.overview,
+      setOverview,
       setAgvList,
       updateAgv,
       updateDevice,
@@ -104,10 +107,16 @@ export function useWebSocket() {
         setDeviceList(devices);
         setTaskList(tasks);
         setAlarms(alarms);
-        fallbackRef.current?.start(800);
       } catch {
-        // 如果 API 也失败，至少保持已有状态
+        // 后端 API 不可用（如 Vercel Serverless 崩溃），使用浏览器本地 Mock 数据
+        const mock = generateMockData();
+        setOverview(mock.overview);
+        setAgvList(mock.agvs);
+        setDeviceList(mock.devices);
+        setTaskList(mock.tasks);
+        setAlarms(mock.alarms);
       }
+      fallbackRef.current?.start(800);
     }
 
     return () => {
