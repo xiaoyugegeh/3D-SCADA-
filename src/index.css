@@ -1,0 +1,145 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* 深色指挥控制中心主题（默认） */
+  --bg-deep: #050d24;
+  --bg-panel: rgba(13, 35, 80, 0.72);
+  --primary-cyan: #00d2ff;
+  --success-green: #00e676;
+  --warning-amber: #ffca28;
+  --danger-red: #ff3b30;
+  --text-main: #ffffff;
+  --text-sub: rgba(255, 255, 255, 0.75);
+  --border-glow: rgba(64, 169, 255, 0.45);
+
+  font-family: 'Noto Sans SC', 'Rajdhani', 'Orbitron', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--text-main);
+  background-color: var(--bg-deep);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 浅色主题 */
+[data-theme='light'] {
+  --bg-deep: #f0f4f8;
+  --bg-panel: rgba(255, 255, 255, 0.85);
+  --primary-cyan: #0288d1;
+  --success-green: #2e7d32;
+  --warning-amber: #f9a825;
+  --danger-red: #d32f2f;
+  --text-main: #1a202c;
+  --text-sub: rgba(26, 32, 44, 0.7);
+  --border-glow: rgba(2, 136, 209, 0.3);
+}
+
+[data-theme='light'] .screen-bg {
+  background: radial-gradient(ellipse at center, #ffffff 0%, #e2e8f0 100%);
+}
+
+[data-theme='light'] .title-glow {
+  color: var(--text-main);
+  text-shadow: none;
+}
+
+/* 赛博朋克主题 */
+[data-theme='cyberpunk'] {
+  --bg-deep: #0a001a;
+  --bg-panel: rgba(40, 0, 80, 0.72);
+  --primary-cyan: #ff00ff;
+  --success-green: #00ff9f;
+  --warning-amber: #ffea00;
+  --danger-red: #ff0055;
+  --text-main: #ffffff;
+  --text-sub: rgba(255, 255, 255, 0.75);
+  --border-glow: rgba(255, 0, 255, 0.5);
+}
+
+[data-theme='cyberpunk'] .screen-bg {
+  background: radial-gradient(ellipse at center, #1a0033 0%, #050010 100%);
+}
+
+[data-theme='cyberpunk'] .title-glow {
+  text-shadow: 0 0 8px #ff00ff, 0 0 16px #ff00ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-deep);
+}
+
+.screen-bg {
+  background: radial-gradient(ellipse at center, #1a2b4d 0%, #0b1324 100%);
+}
+
+.title-glow {
+  text-shadow: 0 0 8px rgba(0, 210, 255, 0.6), 0 0 24px rgba(0, 210, 255, 0.35);
+}
+
+.bg-panel {
+  background-color: var(--bg-panel);
+}
+
+/* 跑马灯动画 */
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.marquee {
+  animation: marquee 20s linear infinite;
+  white-space: nowrap;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 210, 255, 0.35);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 210, 255, 0.55);
+}
+
+/* 工具提示 */
+.r3f-tooltip {
+  pointer-events: none;
+}
+
+/* 隐藏 OrbitControls 的辅助线 */
+canvas {
+  outline: none;
+}

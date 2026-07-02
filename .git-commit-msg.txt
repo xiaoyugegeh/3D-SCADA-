@@ -1,0 +1,8 @@
+Initial commit: Smart Warehouse 3D SCADA Digital Twin Platform
+
+- React + TypeScript + Vite frontend
+- Three.js / React Three Fiber 3D warehouse scene
+- Express + WebSocket mock backend
+- Dashboard, devices, tasks, AI chat, reports pages
+- Dark / light / cyberpunk themes
+- Custom project favicon and README
