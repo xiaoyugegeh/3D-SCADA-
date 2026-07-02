@@ -1,8 +1,12 @@
-// WebSocket 客户端钩子
+// WebSocket 客户端钩子，支持本地模拟 fallback
 
 import { useEffect, useRef } from 'react';
 import { useDashboardStore } from '@/store';
+import { api } from '@/lib/api';
+import { createClientSimulation } from '@/lib/simulation';
 import type { AgvItem, AlarmItem, DeviceItem, LocationItem, TaskItem, WsMessage } from '@/types';
+
+const WS_TIMEOUT = 3000;
 
 export function useWebSocket() {
   const {
@@ -14,18 +18,52 @@ export function useWebSocket() {
     updateLocation,
     setTaskList,
     updateTask,
+    setAlarms,
     addAlarm,
+    setOverview,
     selectedFloor,
   } = useDashboardStore();
   const wsRef = useRef<WebSocket | null>(null);
+  const fallbackRef = useRef<ReturnType<typeof createClientSimulation> | null>(null);
+  const connectedRef = useRef(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    const store = useDashboardStore.getState();
+    fallbackRef.current = createClientSimulation({
+      getAgvs: () => store.agvList,
+      getDevices: () => store.deviceList,
+      getTasks: () => store.taskList,
+      getAlarms: () => store.alarms,
+      setAgvList,
+      updateAgv,
+      updateDevice,
+      updateTask,
+      addAlarm,
+    });
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
+    timeoutRef.current = setTimeout(() => {
+      if (!connectedRef.current) {
+        // WebSocket 未在规定时间内连接，切换到本地模拟
+        ws.close();
+        loadInitialDataAndStartSimulation();
+      }
+    }, WS_TIMEOUT);
+
     ws.onopen = () => {
+      connectedRef.current = true;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (fallbackRef.current) {
+        fallbackRef.current.stop();
+      }
       if (selectedFloor !== 'all') {
         ws.send(JSON.stringify({ type: 'subscribe.floor', payload: selectedFloor }));
       }
@@ -41,15 +79,41 @@ export function useWebSocket() {
     };
 
     ws.onclose = () => {
-      // 自动重连由上层控制或页面刷新恢复
+      if (connectedRef.current) {
+        connectedRef.current = false;
+        // 连接成功后断开，也 fallback 到本地模拟
+        loadInitialDataAndStartSimulation();
+      }
     };
 
     ws.onerror = () => {
-      // 忽略连接错误
+      // 连接错误会在 timeout 或 onclose 中处理
     };
 
+    async function loadInitialDataAndStartSimulation() {
+      try {
+        const [overview, agvs, devices, tasks, alarms] = await Promise.all([
+          api.getOverview(),
+          api.getAgvList(),
+          api.getDeviceList(),
+          api.getTaskList(),
+          api.getAlarms(),
+        ]);
+        setOverview(overview);
+        setAgvList(agvs);
+        setDeviceList(devices);
+        setTaskList(tasks);
+        setAlarms(alarms);
+        fallbackRef.current?.start(800);
+      } catch {
+        // 如果 API 也失败，至少保持已有状态
+      }
+    }
+
     return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       ws.close();
+      fallbackRef.current?.stop();
     };
   }, []);
 
